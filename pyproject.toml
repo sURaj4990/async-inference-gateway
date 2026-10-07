@@ -18,3 +18,13 @@ dependencies = [
     "transformers>=5.17.0",
     "uvicorn>=0.53.0",
 ]
+
+[project.optional-dependencies]
+ui = [
+    "streamlit>=1.45.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]

@@ -1,3 +1,5 @@
+"""FastAPI application entry point and model-engine lifecycle."""
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
@@ -8,10 +10,12 @@ from app.core.engines.openai_compatible import OpenAIEngine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Create shared inference engines and load the local model at startup."""
     print("\n--- Starting Gateway: Initializing Engine ---")
 
     app.state.ollama_engine = OllamaEngine()
     app.state.openai_engine = OpenAIEngine()
+    # Loading here keeps model initialization out of individual request handlers.
     app.state.hf_engine = HuggingFaceEngine(model_id="Qwen/Qwen2.5-0.5B-Instruct")
     app.state.hf_engine.load_model()
 
@@ -24,6 +28,7 @@ app.include_router(router=router)
 
 @app.get("/health", status_code=200, tags=['Health'])
 def health_check() -> dict:
+    """Return a lightweight liveness response for probes and operators."""
     return {
         "status": "healthy",
         "message": "applicaion is running"

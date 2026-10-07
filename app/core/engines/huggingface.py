@@ -1,3 +1,5 @@
+"""Local Transformers-backed inference adapter."""
+
 import asyncio
 import threading
 from typing import AsyncGenerator
@@ -11,6 +13,8 @@ from app.schemas.inference import LocalHFRequest, StreamChunk
 
 
 class HuggingFaceEngine(BaseInferenceEngine):
+    """Load a causal language model and stream generated text tokens."""
+
     def __init__(self, model_id: str = "Qwen/Qwen2.5-0.5B-Instruct") -> None:
         self.model_id = model_id
         self.tokenizer = None
@@ -34,6 +38,7 @@ class HuggingFaceEngine(BaseInferenceEngine):
         print(f"[HuggingFace] {self.model_id} loaded successfully.")
 
     async def stream_generate(self, req: LocalHFRequest) -> AsyncGenerator[StreamChunk, None]:
+        """Run generation on a worker thread while yielding decoded tokens."""
         if not self._is_loaded or self.model is None or self.tokenizer is None:
             yield StreamChunk(
                 token="",
