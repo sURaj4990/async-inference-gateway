@@ -19,7 +19,7 @@ def countdown(n: int) -> list[int]:
 # Implementation of sreating output with one second delay
 def stream_countdown(n: int) -> Iterator[int]:
     for i in range(n):
-        time.sleep(1.0) # blocks the thread completely for 60 seconds
+        time.sleep(1.0) # blocks the thread completely for a second
         yield i
 
 # Implementation of asyncio.sleep()

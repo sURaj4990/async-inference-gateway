@@ -8,7 +8,13 @@ Important components:
 or the streaming has finished, if removed the client might end up in a loop where it keeps waiting 
 for the serrver to send in more data.
 2. The header `media_type="text/event-stream"` specifically tells the client that the type of 
-output from the server will be a streaming type
+output from the server will be a streaming type.
+
+Note:
+In production we basically have either Nginx, cloudflare, or AWS ALB intermediates configured.
+Even when the delimeters and mandatory headers are missed or not configured, they treat them like 
+any other HTTP request, cache the response and send it to the user. So, it is important to configure 
+mandatory headers. 
 """
 
 import asyncio
@@ -40,3 +46,9 @@ async def stream():
             "X-Acces-Buffering": "no",
         }
     )
+
+""" 
+Further Learning:
+1. What do each of these headers say?
+2. Are there any other standard delimiters?
+"""

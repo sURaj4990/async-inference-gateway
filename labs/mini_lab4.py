@@ -1,5 +1,10 @@
 """ 
 What will we learn in lab 4?
+1. How firing up multiple workers behave as different processe
+2. Each process has it's own In-memory store that it can write to which is independent
+from other processe stores.
+3. Why in memory store is broken and we need external database like Redis
+4. How `--reload` argument prevents multiple processes executing at once
 """
 
 import os
@@ -31,3 +36,9 @@ def rate_limited(user: str = 'alice') -> dict:
         'count': REQUEST_COUNT.get(user),
         'worker_id': pid,
     }
+
+""" 
+Further Learning:
+1. Learn how to write test scripts
+2. Understand how workers handle in-memory store 
+"""
