@@ -1,0 +1,76 @@
+services:
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    ports:
+      - "8000:8000"
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      target: api
+    network_mode: "service:ollama"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      HF_HOME: /cache/huggingface
+      REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_REQUESTS: "10"
+      RATE_LIMIT_WINDOW_SECONDS: "60"
+    volumes:
+      - huggingface_cache:/cache/huggingface
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 180s
+
+  streamlit:
+    build:
+      context: .
+      target: streamlit
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      INFERENCE_API_URL: http://ollama:8000
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+volumes:
+  huggingface_cache:
+  ollama_data:
+  redis_data:

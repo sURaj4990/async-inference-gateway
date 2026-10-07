@@ -1,3 +1,5 @@
+"""HTTP streaming adapter for an Ollama server."""
+
 import json
 from typing import AsyncGenerator
 import httpx
@@ -6,10 +8,13 @@ from app.core.engines.base import BaseInferenceEngine
 from app.schemas.inference import OllamaRequest, StreamChunk
 
 class OllamaEngine(BaseInferenceEngine):
+    """Request newline-delimited generate responses from Ollama."""
+
     def __init__(self, base_url: str = "http://localhost:11434") -> None:
         self.base_url = base_url.rstrip("/")
         
     async def stream_generate(self, req: OllamaRequest) -> AsyncGenerator[StreamChunk, None]:
+        """Translate Ollama's JSON lines into normalized token chunks."""
         url = f"{self.base_url}/api/generate"
         payload = {
             "model": req.model,
