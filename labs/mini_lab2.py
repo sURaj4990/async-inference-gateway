@@ -1,7 +1,7 @@
 """ 
 What did we learn from this lab?
-1. Why synchronous compute shoud never make the event loop wait
-2. Why just putting async does not deload the compute and free the thread
+1. Why synchronous compute shoud never make the event loop wait?
+2. Why just putting async does not deload the compute and free the thread?
 3. Different ways to prevent this blocking 
 > a. Move the blocking synchronous compute to another thread, freeing the original thread for the event loop
 > b. Offload the compute over the network to an external daemon via non blocking async network call (mimics the I/O operation)
