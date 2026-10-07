@@ -1,12 +1,17 @@
 """Versioned HTTP routes for streaming inference requests."""
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from app.api.v1.utils import format_sse_stream
+from app.core.rate_limiter import enforce_inference_rate_limit
 from app.schemas.inference import LocalHFRequest, OllamaRequest, OpenAIRequest
 
-router = APIRouter(prefix="/v1/chat/stream", tags=["Inference"])
+router = APIRouter(
+    prefix="/v1/chat/stream",
+    tags=["Inference"],
+    dependencies=[Depends(enforce_inference_rate_limit)],
+)
 
 @router.post("/local")
 async def stream_local_hf(req: LocalHFRequest, request: Request):
@@ -15,7 +20,8 @@ async def stream_local_hf(req: LocalHFRequest, request: Request):
     stream = hf_engine.stream_generate(req)
     return StreamingResponse(
         format_sse_stream(stream),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers=request.state.rate_limit_headers,
     )
 
 @router.post("/ollama")
@@ -25,7 +31,8 @@ async def stream_ollama(req: OllamaRequest, request: Request):
     stream = ollama_engine.stream_generate(req)
     return StreamingResponse(
         format_sse_stream(stream),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers=request.state.rate_limit_headers,
     )
 
 @router.post("/openai")
@@ -35,5 +42,6 @@ async def stream_openai_like(req: OpenAIRequest, request: Request):
     stream = openai_engine.stream_generate(req)
     return StreamingResponse(
         format_sse_stream(stream),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers=request.state.rate_limit_headers,
     )

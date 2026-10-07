@@ -42,3 +42,5 @@ uv run --group dev pytest -q
 ```
 
 Tests use fake inference engines and do not download model weights or contact external model providers.
+
+Inference endpoints use Redis to enforce a configurable per-IP sliding-window request limit (10 requests per 60 seconds by default). See [usage and configuration](docs/usage.md) for deployment details.

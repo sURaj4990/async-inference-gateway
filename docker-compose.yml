@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   ollama:
     image: ollama/ollama:latest
     environment:
@@ -23,9 +35,14 @@ services:
     network_mode: "service:ollama"
     depends_on:
       ollama:
-        condition: service_started
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       HF_HOME: /cache/huggingface
+      REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_REQUESTS: "10"
+      RATE_LIMIT_WINDOW_SECONDS: "60"
     volumes:
       - huggingface_cache:/cache/huggingface
     restart: unless-stopped
@@ -56,3 +73,4 @@ services:
 volumes:
   huggingface_cache:
   ollama_data:
+  redis_data:

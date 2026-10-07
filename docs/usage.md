@@ -34,6 +34,8 @@ docker compose up --build
 
 The UI is exposed on port 8501, the API on port 8000, and Ollama on port 11434. The API's startup loads the Hugging Face model and can take a while on first boot. Docker volumes preserve Hugging Face and Ollama caches across restarts.
 
+Compose also starts Redis with a persistent data volume. The API waits for Redis health before starting. By default, each client IP may start 10 inference requests in a rolling 60-second window across all three providers. Override `RATE_LIMIT_REQUESTS` and `RATE_LIMIT_WINDOW_SECONDS` in the API service environment to change this policy. Redis connectivity is required: if it becomes unavailable, inference requests receive `503` until it recovers.
+
 Download an Ollama model after the service is up:
 
 ```powershell

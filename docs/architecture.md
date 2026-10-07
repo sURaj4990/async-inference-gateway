@@ -21,6 +21,8 @@ FastAPI initializes the Ollama and OpenAI-compatible adapters at startup and eag
 
 The inference routes respond with `text/event-stream`. Each SSE `data:` line contains a JSON `StreamChunk` with `token`, `is_finished`, and optional `error` fields. Clients should concatenate token values until `is_finished` is true and handle a non-empty `error` as a failed generation.
 
+Before an inference stream starts, a Redis-backed sliding-window limiter checks the caller's client IP across all three providers. The default is 10 request starts per 60 seconds. Successful responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`; rejected requests return `429` with `Retry-After`. If Redis cannot enforce the policy, the API returns `503` rather than allowing unmetered inference. The health endpoint is not rate limited.
+
 ### Request bodies
 
 Local Hugging Face:
@@ -51,4 +53,4 @@ The OpenAI-compatible `base_url` must be reachable from the FastAPI process. Wit
 
 ## Operational considerations
 
-The API currently has no authentication or authorization. The local Hugging Face model is loaded into CPU memory using float32 weights, so provision adequate RAM and persistent model-cache storage. The API streams provider errors as final stream chunks; clients should inspect the `error` property even when the HTTP response status is successful.
+The API currently has no authentication or authorization. IP-based limits identify callers by the connection peer; behind a proxy, configure the proxy and server trust boundary carefully before relying on client IPs. When requests pass through the Streamlit service in Compose, they share the Streamlit container's quota. All providers share one quota per IP, and concurrent active streams are not limited separately. The local Hugging Face model is loaded into CPU memory using float32 weights, so provision adequate RAM and persistent model-cache storage. The API streams provider errors as final stream chunks; clients should inspect the `error` property even when the HTTP response status is successful.
